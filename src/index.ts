@@ -33,13 +33,16 @@ const planeHelper = new THREE.PlaneHelper(plane, 1, 0xffff00);
 scene.add(planeHelper);
 
 // Basis vectors that comprise a 2D coordinate system on the plane
-let basis1 = new THREE.Vector3();
-let basis2 = new THREE.Vector3();
-let helperVector =
-  Math.abs(plane.normal.x) > Math.abs(plane.normal.y)
-    ? new THREE.Vector3(0, 1, 0)
-    : new THREE.Vector3(1, 0, 0);
-basis1.crossVectors(plane.normal, helperVector).normalize();
+const basis1 = new THREE.Vector3();
+const basis2 = new THREE.Vector3();
+basis1
+  .crossVectors(
+    plane.normal,
+    Math.abs(plane.normal.x) > Math.abs(plane.normal.y)
+      ? new THREE.Vector3(0, 1, 0)
+      : new THREE.Vector3(1, 0, 0)
+  )
+  .normalize();
 basis2.crossVectors(plane.normal, basis1).normalize();
 const basis1Helper = new THREE.ArrowHelper(
   basis1,
@@ -84,7 +87,14 @@ function updateVectors() {
     plane.normal.clone().multiplyScalar(-plane.constant).normalize()
   );
   planePositionHelper.setLength(Math.abs(plane.constant), 0);
-  basis1.crossVectors(plane.normal, helperVector).normalize();
+  basis1
+    .crossVectors(
+      plane.normal,
+      Math.abs(plane.normal.x) > Math.abs(plane.normal.y)
+        ? new THREE.Vector3(0, 1, 0)
+        : new THREE.Vector3(1, 0, 0)
+    )
+    .normalize();
   basis2.crossVectors(plane.normal, basis1).normalize();
   basis1Helper.setDirection(basis1);
   basis2Helper.setDirection(basis2);
