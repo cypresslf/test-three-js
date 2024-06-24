@@ -77,8 +77,11 @@ const planePositionHelper = new THREE.ArrowHelper(
 );
 scene.add(planePositionHelper);
 
+// Dynamic list of points
+const points: THREE.Mesh[] = [];
+
 // User input event listeners
-function updateVectors() {
+function updateScene() {
   normalHelper.setDirection(plane.normal);
   normalHelper.position.copy(
     plane.normal.clone().multiplyScalar(-plane.constant)
@@ -98,6 +101,12 @@ function updateVectors() {
   basis2.crossVectors(plane.normal, basis1).normalize();
   basis1Helper.setDirection(basis1);
   basis2Helper.setDirection(basis2);
+
+  // keep all the points on the plane
+  for (const point of points) {
+    const distance = plane.distanceToPoint(point.position);
+    point.position.sub(plane.normal.clone().multiplyScalar(distance));
+  }
 }
 
 planeConstantSlider.value = plane.constant.toString();
@@ -108,28 +117,48 @@ planeNormalZSlider.value = plane.normal.z.toString();
 planeConstantSlider.addEventListener("input", (e) => {
   const value = (e.target as HTMLInputElement).valueAsNumber;
   plane.constant = value;
-  updateVectors();
+  updateScene();
 });
 
 planeNormalXSlider.addEventListener("input", (e) => {
   const value = (e.target as HTMLInputElement).valueAsNumber;
   plane.normal.x = value;
   plane.normal.normalize();
-  updateVectors();
+  updateScene();
 });
 
 planeNormalYSlider.addEventListener("input", (e) => {
   const value = (e.target as HTMLInputElement).valueAsNumber;
   plane.normal.y = value;
   plane.normal.normalize();
-  updateVectors();
+  updateScene();
 });
 
 planeNormalZSlider.addEventListener("input", (e) => {
   const value = (e.target as HTMLInputElement).valueAsNumber;
   plane.normal.z = value;
   plane.normal.normalize();
-  updateVectors();
+  updateScene();
+});
+canvas.addEventListener("click", (e) => {
+  // add a point to the scene at the intersection of the plane and the ray
+  const point = new THREE.Mesh(
+    new THREE.SphereGeometry(0.05),
+    new THREE.MeshBasicMaterial({ color: 0xffffff })
+  );
+  const raycaster = new THREE.Raycaster();
+  raycaster.setFromCamera(
+    new THREE.Vector2(
+      (e.clientX / window.innerWidth) * 2 - 1,
+      -(e.clientY / window.innerHeight) * 2 + 1
+    ),
+    camera
+  );
+  const intersection = new THREE.Vector3();
+  raycaster.ray.intersectPlane(plane, intersection);
+  point.position.copy(intersection);
+  points.push(point);
+  scene.add(point);
 });
 
 renderer.setAnimationLoop(() => renderer.render(scene, camera));
