@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Test THREE.js</title>
+    <style>
+      body {
+        margin: 0;
+        color: white;
+        font-family: sans-serif;
+        background-color: #000;
+      }
+      form {
+        position: fixed;
+
+        label {
+          display: flex;
+          gap: 1rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <form>
+      <label>
+        Plane constant
+        <input
+          type="range"
+          min="-6"
+          max="6"
+          value="0"
+          step="any"
+          id="plane-constant"
+        />
+      </label>
+      <fieldset>
+        <legend>Plane normal</legend>
+        <label>
+          x
+          <input
+            type="range"
+            min="-1"
+            max="1"
+            value="1"
+            step="any"
+            id="plane-normal-x"
+          />
+        </label>
+        <label
+          >y
+          <input
+            type="range"
+            min="-1"
+            max="1"
+            value="1"
+            step="any"
+            id="plane-normal-y"
+          />
+        </label>
+        <label>
+          z
+          <input
+            type="range"
+            min="-1"
+            max="1"
+            value="1"
+            step="any"
+            id="plane-normal-z"
+          />
+        </label>
+      </fieldset>
+    </form>
+    <canvas></canvas>
+    <script type="module" src="/src/index.ts"></script>
+  </body>
+</html>
