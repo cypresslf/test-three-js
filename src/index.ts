@@ -27,10 +27,13 @@ camera.position.z = 5;
 const renderer = new THREE.WebGLRenderer({ canvas });
 renderer.setSize(window.innerWidth, window.innerHeight);
 
+const ARROW_SIZE = 0.2;
+
 // Plane
 const plane = new THREE.Plane(new THREE.Vector3(1, 1, 1).normalize(), -1);
-const planeHelper = new THREE.PlaneHelper(plane, 1, 0xffff00);
-scene.add(planeHelper);
+const centerOf = (plane: THREE.Plane) =>
+  plane.normal.clone().multiplyScalar(-plane.constant);
+const planeCenter = centerOf(plane);
 
 // Basis vectors that comprise a 2D coordinate system on the plane
 const basis1 = new THREE.Vector3();
@@ -44,52 +47,28 @@ basis1
   )
   .normalize();
 basis2.crossVectors(plane.normal, basis1).normalize();
-const basis1Helper = new THREE.ArrowHelper(
-  basis1,
-  new THREE.Vector3(),
-  1,
-  0xff0000
-);
-const basis2Helper = new THREE.ArrowHelper(
-  basis2,
-  new THREE.Vector3(),
-  1,
-  0x00ff00
-);
+const basis1Helper = new THREE.ArrowHelper(basis1, planeCenter, 1, 0xff0000);
+const basis2Helper = new THREE.ArrowHelper(basis2, planeCenter, 1, 0x00ff00);
 scene.add(basis1Helper, basis2Helper);
-
-// Normal vector
-const normalHelper = new THREE.ArrowHelper(
-  plane.normal,
-  plane.normal.clone().multiplyScalar(-plane.constant),
-  1,
-  0xffff00
-);
-scene.add(normalHelper);
 
 // Position vector
 const planePositionHelper = new THREE.ArrowHelper(
   plane.normal,
   new THREE.Vector3(),
-  Math.abs(plane.constant),
-  0xffffff,
-  0
+  Math.abs(plane.constant) + 1,
+  0x5555ff,
+  ARROW_SIZE
 );
 scene.add(planePositionHelper);
 
 // Dynamic list of points
-const points: THREE.Mesh[] = [];
+const points: THREE.Vector2[] = [];
 
 // User input event listeners
 function updateScene() {
-  normalHelper.setDirection(plane.normal);
-  normalHelper.position.copy(
-    plane.normal.clone().multiplyScalar(-plane.constant)
-  );
-  planePositionHelper.setDirection(
-    plane.normal.clone().multiplyScalar(-plane.constant).normalize()
-  );
-  planePositionHelper.setLength(Math.abs(plane.constant), 0);
+  const planeCenter = centerOf(plane);
+  planePositionHelper.setDirection(planeCenter.clone().normalize());
+  planePositionHelper.setLength(Math.abs(plane.constant) + 1, ARROW_SIZE);
   basis1
     .crossVectors(
       plane.normal,
@@ -101,12 +80,8 @@ function updateScene() {
   basis2.crossVectors(plane.normal, basis1).normalize();
   basis1Helper.setDirection(basis1);
   basis2Helper.setDirection(basis2);
-
-  // keep all the points on the plane
-  for (const point of points) {
-    const distance = plane.distanceToPoint(point.position);
-    point.position.sub(plane.normal.clone().multiplyScalar(distance));
-  }
+  basis1Helper.position.copy(planeCenter);
+  basis2Helper.position.copy(planeCenter);
 }
 
 planeConstantSlider.value = plane.constant.toString();
@@ -157,7 +132,6 @@ canvas.addEventListener("click", (e) => {
   const intersection = new THREE.Vector3();
   raycaster.ray.intersectPlane(plane, intersection);
   point.position.copy(intersection);
-  points.push(point);
   scene.add(point);
 });
 
