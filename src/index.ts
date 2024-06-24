@@ -66,6 +66,25 @@ function updateScene() {
   yAxis.setDirection(basis2);
   xAxis.position.copy(planeCenter);
   yAxis.position.copy(planeCenter);
+
+  // Add a dot for each point
+  scene.children
+    .filter((child) => child instanceof THREE.Mesh)
+    .forEach((child) => scene.remove(child));
+  points.forEach((point) => {
+    const dot = new THREE.Mesh(
+      new THREE.CircleGeometry(0.05, 32),
+      new THREE.MeshBasicMaterial({ color: 0xffffff })
+    );
+    dot.position.set(
+      basis1.clone().multiplyScalar(point.x).x +
+        basis2.clone().multiplyScalar(point.y).x,
+      basis1.clone().multiplyScalar(point.x).y +
+        basis2.clone().multiplyScalar(point.y).y,
+      planeCenter.z
+    );
+    scene.add(dot);
+  });
 }
 
 // Add event listeners
@@ -97,11 +116,7 @@ planeNormalZSlider.addEventListener("input", (e) => {
 });
 
 canvas.addEventListener("click", (e) => {
-  // add a point to the scene at the intersection of the plane and the ray
-  const point = new THREE.Mesh(
-    new THREE.SphereGeometry(0.05),
-    new THREE.MeshBasicMaterial({ color: 0xffffff })
-  );
+  // add a point to the state at the intersection of the plane and the ray
   const raycaster = new THREE.Raycaster();
   raycaster.setFromCamera(
     new THREE.Vector2(
@@ -112,8 +127,28 @@ canvas.addEventListener("click", (e) => {
   );
   const intersection = new THREE.Vector3();
   raycaster.ray.intersectPlane(plane, intersection);
-  point.position.copy(intersection);
-  scene.add(point);
+
+  const point = intersection.clone();
+
+  // transform world space Vector3 point to plane space Vector2 point
+  const planeCenter = plane.normal.clone().multiplyScalar(-plane.constant);
+  const basis1 = new THREE.Vector3()
+    .crossVectors(
+      plane.normal,
+      Math.abs(plane.normal.x) > Math.abs(plane.normal.y)
+        ? new THREE.Vector3(0, 1, 0)
+        : new THREE.Vector3(1, 0, 0)
+    )
+    .normalize();
+  const basis2 = new THREE.Vector3()
+    .crossVectors(plane.normal, basis1)
+    .normalize();
+  const planeSpacePoint = new THREE.Vector2(
+    point.clone().sub(planeCenter).dot(basis1),
+    point.clone().sub(planeCenter).dot(basis2)
+  );
+  points.push(planeSpacePoint);
+  updateScene();
 });
 
 updateScene();
