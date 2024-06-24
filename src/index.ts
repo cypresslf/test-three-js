@@ -25,17 +25,26 @@ const camera = new THREE.PerspectiveCamera(
 const renderer = new THREE.WebGLRenderer({ canvas });
 renderer.setSize(window.innerWidth, window.innerHeight);
 
-const plane = new THREE.Plane(new THREE.Vector3(1, 1, 1).normalize(), 1);
+const plane = new THREE.Plane(new THREE.Vector3(1, 1, 1).normalize(), -1);
 const planeHelper = new THREE.PlaneHelper(plane, 1, 0xffff00);
 scene.add(planeHelper);
 
-const arrowHelper = new THREE.ArrowHelper(
+const normalHelper = new THREE.ArrowHelper(
   plane.normal,
   plane.normal.clone().multiplyScalar(-plane.constant),
   1,
   0xffff00
 );
-scene.add(arrowHelper);
+scene.add(normalHelper);
+
+const planePositionHelper = new THREE.ArrowHelper(
+  plane.normal,
+  new THREE.Vector3(0, 0, 0),
+  Math.abs(plane.constant),
+  0xffffff,
+  0
+);
+scene.add(planePositionHelper);
 
 camera.position.z = 5;
 
@@ -44,10 +53,15 @@ function animate() {
 }
 
 function updateArrow() {
-  arrowHelper.setDirection(plane.normal);
-  arrowHelper.position.copy(
+  normalHelper.setDirection(plane.normal);
+  normalHelper.position.copy(
     plane.normal.clone().multiplyScalar(-plane.constant)
   );
+  planePositionHelper.setDirection(
+    plane.normal.clone().multiplyScalar(-plane.constant).normalize()
+  );
+  planePositionHelper.position.set(0, 0, 0);
+  planePositionHelper.setLength(Math.abs(plane.constant), 0);
 }
 
 planeConstantSlider.value = plane.constant.toString();
