@@ -29,47 +29,26 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 
 const ARROW_SIZE = 0.2;
 
-// Plane
+// Initialize the state
 const plane = new THREE.Plane(new THREE.Vector3(1, 1, 1).normalize(), -1);
-const centerOf = (plane: THREE.Plane) =>
-  plane.normal.clone().multiplyScalar(-plane.constant);
-const planeCenter = centerOf(plane);
+const points = [] as THREE.Vector2[];
 
-// Basis vectors that comprise a 2D coordinate system on the plane
-const basis1 = new THREE.Vector3();
-const basis2 = new THREE.Vector3();
-basis1
-  .crossVectors(
-    plane.normal,
-    Math.abs(plane.normal.x) > Math.abs(plane.normal.y)
-      ? new THREE.Vector3(0, 1, 0)
-      : new THREE.Vector3(1, 0, 0)
-  )
-  .normalize();
-basis2.crossVectors(plane.normal, basis1).normalize();
-const basis1Helper = new THREE.ArrowHelper(basis1, planeCenter, 1, 0xff0000);
-const basis2Helper = new THREE.ArrowHelper(basis2, planeCenter, 1, 0x00ff00);
-scene.add(basis1Helper, basis2Helper);
+// Initialize the DOM elements
+planeConstantSlider.value = plane.constant.toString();
+planeNormalXSlider.value = plane.normal.x.toString();
+planeNormalYSlider.value = plane.normal.y.toString();
+planeNormalZSlider.value = plane.normal.z.toString();
 
-// Position vector
-const planePositionHelper = new THREE.ArrowHelper(
-  plane.normal,
-  new THREE.Vector3(),
-  Math.abs(plane.constant) + 1,
-  0x5555ff,
-  ARROW_SIZE
-);
-scene.add(planePositionHelper);
+// Initialize the scene
+const zAxis = new THREE.ArrowHelper(undefined, undefined, undefined, 0x5555ff);
+const xAxis = new THREE.ArrowHelper(undefined, undefined, 1, 0xff0000);
+const yAxis = new THREE.ArrowHelper(undefined, undefined, 1, 0x00ff00);
+scene.add(zAxis, xAxis, yAxis);
 
-// Dynamic list of points
-const points: THREE.Vector2[] = [];
-
-// User input event listeners
+// Update the scene
 function updateScene() {
-  const planeCenter = centerOf(plane);
-  planePositionHelper.setDirection(planeCenter.clone().normalize());
-  planePositionHelper.setLength(Math.abs(plane.constant) + 1, ARROW_SIZE);
-  basis1
+  const planeCenter = plane.normal.clone().multiplyScalar(-plane.constant);
+  const basis1 = new THREE.Vector3()
     .crossVectors(
       plane.normal,
       Math.abs(plane.normal.x) > Math.abs(plane.normal.y)
@@ -77,18 +56,19 @@ function updateScene() {
         : new THREE.Vector3(1, 0, 0)
     )
     .normalize();
-  basis2.crossVectors(plane.normal, basis1).normalize();
-  basis1Helper.setDirection(basis1);
-  basis2Helper.setDirection(basis2);
-  basis1Helper.position.copy(planeCenter);
-  basis2Helper.position.copy(planeCenter);
+  const basis2 = new THREE.Vector3()
+    .crossVectors(plane.normal, basis1)
+    .normalize();
+
+  zAxis.setLength(Math.abs(plane.constant) + 1, ARROW_SIZE);
+  zAxis.setDirection(planeCenter.clone().normalize());
+  xAxis.setDirection(basis1);
+  yAxis.setDirection(basis2);
+  xAxis.position.copy(planeCenter);
+  yAxis.position.copy(planeCenter);
 }
 
-planeConstantSlider.value = plane.constant.toString();
-planeNormalXSlider.value = plane.normal.x.toString();
-planeNormalYSlider.value = plane.normal.y.toString();
-planeNormalZSlider.value = plane.normal.z.toString();
-
+// Add event listeners
 planeConstantSlider.addEventListener("input", (e) => {
   const value = (e.target as HTMLInputElement).valueAsNumber;
   plane.constant = value;
@@ -115,6 +95,7 @@ planeNormalZSlider.addEventListener("input", (e) => {
   plane.normal.normalize();
   updateScene();
 });
+
 canvas.addEventListener("click", (e) => {
   // add a point to the scene at the intersection of the plane and the ray
   const point = new THREE.Mesh(
@@ -135,4 +116,5 @@ canvas.addEventListener("click", (e) => {
   scene.add(point);
 });
 
+updateScene();
 renderer.setAnimationLoop(() => renderer.render(scene, camera));
