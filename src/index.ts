@@ -33,6 +33,21 @@ const ARROW_SIZE = 0.2;
 // Initialize the state
 const plane = new THREE.Plane(new THREE.Vector3(1, 1, 1).normalize(), -1);
 const points = [] as THREE.Vector2[];
+const coordinateSystemOf = (
+  plane: THREE.Plane
+): { origin: THREE.Vector3; x: THREE.Vector3; y: THREE.Vector3 } => {
+  const origin = plane.normal.clone().multiplyScalar(-plane.constant);
+  const x = new THREE.Vector3()
+    .crossVectors(
+      plane.normal,
+      Math.abs(plane.normal.x) > Math.abs(plane.normal.y)
+        ? new THREE.Vector3(0, 1, 0)
+        : new THREE.Vector3(1, 0, 0)
+    )
+    .normalize();
+  const y = new THREE.Vector3().crossVectors(plane.normal, x).normalize();
+  return { origin, x, y };
+};
 
 // Initialize the DOM elements
 planeConstantSlider.value = plane.constant.toString();
@@ -48,25 +63,14 @@ scene.add(zAxis, xAxis, yAxis);
 
 // Update the scene
 function updateScene() {
-  const planeCenter = plane.normal.clone().multiplyScalar(-plane.constant);
-  const basis1 = new THREE.Vector3()
-    .crossVectors(
-      plane.normal,
-      Math.abs(plane.normal.x) > Math.abs(plane.normal.y)
-        ? new THREE.Vector3(0, 1, 0)
-        : new THREE.Vector3(1, 0, 0)
-    )
-    .normalize();
-  const basis2 = new THREE.Vector3()
-    .crossVectors(plane.normal, basis1)
-    .normalize();
+  const { origin, x, y } = coordinateSystemOf(plane);
 
   zAxis.setLength(Math.abs(plane.constant) + 1, ARROW_SIZE);
-  zAxis.setDirection(planeCenter.clone().normalize());
-  xAxis.setDirection(basis1);
-  yAxis.setDirection(basis2);
-  xAxis.position.copy(planeCenter);
-  yAxis.position.copy(planeCenter);
+  zAxis.setDirection(origin.clone().normalize());
+  xAxis.setDirection(x);
+  yAxis.setDirection(y);
+  xAxis.position.copy(origin);
+  yAxis.position.copy(origin);
 
   // Add a dot for each point
   scene.children
@@ -78,11 +82,9 @@ function updateScene() {
       new THREE.MeshBasicMaterial({ color: 0x031229 })
     );
     dot.position.set(
-      basis1.clone().multiplyScalar(point.x).x +
-        basis2.clone().multiplyScalar(point.y).x,
-      basis1.clone().multiplyScalar(point.x).y +
-        basis2.clone().multiplyScalar(point.y).y,
-      planeCenter.z
+      x.clone().multiplyScalar(point.x).x + y.clone().multiplyScalar(point.y).x,
+      x.clone().multiplyScalar(point.x).y + y.clone().multiplyScalar(point.y).y,
+      origin.z
     );
     scene.add(dot);
   });
@@ -126,25 +128,14 @@ canvas.addEventListener("click", (e) => {
     ),
     camera
   );
-  const intersection = new THREE.Vector3();
-  raycaster.ray.intersectPlane(plane, intersection);
+  const point = new THREE.Vector3();
+  raycaster.ray.intersectPlane(plane, point);
 
   // transform world space Vector3 point to plane space Vector2 point
-  const planeCenter = plane.normal.clone().multiplyScalar(-plane.constant);
-  const basis1 = new THREE.Vector3()
-    .crossVectors(
-      plane.normal,
-      Math.abs(plane.normal.x) > Math.abs(plane.normal.y)
-        ? new THREE.Vector3(0, 1, 0)
-        : new THREE.Vector3(1, 0, 0)
-    )
-    .normalize();
-  const basis2 = new THREE.Vector3()
-    .crossVectors(plane.normal, basis1)
-    .normalize();
+  const { origin, x, y } = coordinateSystemOf(plane);
   const planeSpacePoint = new THREE.Vector2(
-    intersection.clone().sub(planeCenter).dot(basis1),
-    intersection.clone().sub(planeCenter).dot(basis2)
+    point.clone().sub(origin).dot(x),
+    point.clone().sub(origin).dot(y)
   );
   points.push(planeSpacePoint);
   updateScene();
