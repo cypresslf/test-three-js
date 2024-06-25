@@ -129,8 +129,6 @@ canvas.addEventListener("click", (e) => {
   const intersection = new THREE.Vector3();
   raycaster.ray.intersectPlane(plane, intersection);
 
-  const point = intersection.clone();
-
   // transform world space Vector3 point to plane space Vector2 point
   const planeCenter = plane.normal.clone().multiplyScalar(-plane.constant);
   const basis1 = new THREE.Vector3()
@@ -145,8 +143,8 @@ canvas.addEventListener("click", (e) => {
     .crossVectors(plane.normal, basis1)
     .normalize();
   const planeSpacePoint = new THREE.Vector2(
-    point.clone().sub(planeCenter).dot(basis1),
-    point.clone().sub(planeCenter).dot(basis2)
+    intersection.clone().sub(planeCenter).dot(basis1),
+    intersection.clone().sub(planeCenter).dot(basis2)
   );
   points.push(planeSpacePoint);
   updateScene();
