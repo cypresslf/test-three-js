@@ -17,6 +17,7 @@ const canvas = document.querySelector("canvas")!;
 
 // Three.js setup
 const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xfff8de);
 const camera = new THREE.PerspectiveCamera(
   75,
   window.innerWidth / window.innerHeight,
@@ -40,9 +41,9 @@ planeNormalYSlider.value = plane.normal.y.toString();
 planeNormalZSlider.value = plane.normal.z.toString();
 
 // Initialize the scene
-const zAxis = new THREE.ArrowHelper(undefined, undefined, undefined, 0x5555ff);
-const xAxis = new THREE.ArrowHelper(undefined, undefined, 1, 0xff0000);
-const yAxis = new THREE.ArrowHelper(undefined, undefined, 1, 0x00ff00);
+const zAxis = new THREE.ArrowHelper(undefined, undefined, undefined, 0x0000ff);
+const xAxis = new THREE.ArrowHelper(undefined, undefined, 1, 0xbb0000);
+const yAxis = new THREE.ArrowHelper(undefined, undefined, 1, 0x00aa00);
 scene.add(zAxis, xAxis, yAxis);
 
 // Update the scene
@@ -74,7 +75,7 @@ function updateScene() {
   points.forEach((point) => {
     const dot = new THREE.Mesh(
       new THREE.CircleGeometry(0.05, 32),
-      new THREE.MeshBasicMaterial({ color: 0xffffff })
+      new THREE.MeshBasicMaterial({ color: 0x031229 })
     );
     dot.position.set(
       basis1.clone().multiplyScalar(point.x).x +
