@@ -81,11 +81,14 @@ function updateScene() {
       new THREE.CircleGeometry(0.05, 32),
       new THREE.MeshBasicMaterial({ color: 0x031229 })
     );
-    dot.position.set(
-      x.clone().multiplyScalar(point.x).x + y.clone().multiplyScalar(point.y).x,
-      x.clone().multiplyScalar(point.x).y + y.clone().multiplyScalar(point.y).y,
-      origin.z
+
+    dot.position.copy(
+      origin
+        .clone()
+        .add(x.clone().multiplyScalar(point.x))
+        .add(y.clone().multiplyScalar(point.y))
     );
+
     scene.add(dot);
   });
 }
