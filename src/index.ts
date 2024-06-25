@@ -144,5 +144,11 @@ canvas.addEventListener("click", (e) => {
   updateScene();
 });
 
+window.addEventListener("resize", () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
 updateScene();
 renderer.setAnimationLoop(() => renderer.render(scene, camera));
